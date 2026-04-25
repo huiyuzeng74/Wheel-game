@@ -5,122 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kids' Word Spinner</title>
     <style>
-        body { font-family: sans-serif; background: #e0f2fe; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; overflow-x: hidden; }
-        .admin { background: white; padding: 15px; border-radius: 12px; width: 90%; max-width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10; }
-        textarea { width: 100%; height: 50px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { cursor: pointer; border: none; font-weight: bold; }
-        .btn-update { background: #3b82f6; color: white; width: 100%; padding: 10px; border-radius: 8px; margin-top: 5px; }
+        body { font-family: sans-serif; background: #e0f2fe; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+        .admin { background: white; padding: 15px; border-radius: 12px; width: 90%; max-width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
+        textarea { width: 100%; height: 50px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; padding: 8px; margin-bottom: 10px; }
+        .btn-blue { background: #3b82f6; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
-        /* 輪盤容器 */
-        .stage { position: relative; width: 320px; height: 320px; margin: 40px 0; }
-        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #333; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; }
+        .stage { position: relative; width: 320px; height: 320px; margin: 20px 0; }
+        /* 輪盤主體 */
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; z-index: 1; }
         .seg { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; }
         
-        /* 文字標籤：絕對不旋轉 */
+        /* 文字層：這層跟著輪盤一起轉 */
+        #textLayer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); z-index: 2; pointer-events: none; }
+        
+        /* 每個文字：在旋轉的層裡反向自轉，保持垂直 */
         .word-item {
-            position: absolute; width: 80px; height: 40px;
+            position: absolute; width: 100px; height: 40px;
+            left: 50%; top: 50%; margin-left: -50px; margin-top: -20px;
             display: flex; align-items: center; justify-content: center;
             font-size: 22px; font-weight: bold; color: #1e293b;
-            z-index: 50; pointer-events: none;
-            /* 初始狀態 */
-            left: 50%; top: 50%;
             transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1);
         }
 
         #pointer { 
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 100;
-            width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #ef4444; 
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%); z-index: 100;
+            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #ef4444; 
         }
-        .btn-spin { background: #22c55e; color: white; padding: 15px 60px; font-size: 24px; border-radius: 50px; box-shadow: 0 6px 0 #15803d; }
-        .btn-spin:active { transform: translateY(4px); box-shadow: 0 2px 0 #15803d; }
+        .btn-spin { background: #22c55e; color: white; border: none; padding: 18px 80px; font-size: 26px; border-radius: 50px; box-shadow: 0 6px 0 #15803d; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:#1e3a8a">Kids' Word Spinner</h2>
+    <h2 style="color:#1e3a8a">🎡 Kids' Word Spinner</h2>
 
     <div class="admin">
         <textarea id="wordInput">蘋果, 香蕉, 西瓜, 葡萄, 草莓, 芒果</textarea>
-        <button class="btn-update" onclick="init()">Update (更新輪盤)</button>
+        <button class="btn-blue" onclick="init()">Update (更新輪盤)</button>
     </div>
 
     <div class="stage">
         <div id="pointer"></div>
         <div id="wheel"></div>
-        <div id="labels-container"></div>
+        <div id="textLayer"></div>
     </div>
 
     <button class="btn-spin" onclick="spin()">SPIN!</button>
 
     <script>
-        let currentRot = 0;
+        let curRot = 0;
         const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF'];
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function playTick() {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.frequency.value = 600; g.gain.value = 0.1;
-            osc.start(); g.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.1);
-            osc.stop(audioCtx.currentTime + 0.1);
-        }
 
         function init() {
             const wheel = document.getElementById('wheel');
-            const container = document.getElementById('labels-container');
-            const words = document.getElementById('wordInput').value.split(/[\s,，]+/).filter(w => w.trim() !== "");
+            const textLayer = document.getElementById('textLayer');
+            const input = document.getElementById('wordInput').value;
+            const words = input.split(/[\s,，]+/).filter(w => w.trim() !== "");
             
             wheel.innerHTML = '';
-            container.innerHTML = '';
+            textLayer.innerHTML = '';
             const step = 360 / words.length;
 
             words.forEach((word, i) => {
-                // 畫扇區
+                // 1. 畫背景扇區
                 const s = document.createElement('div');
                 s.className = 'seg';
                 s.style.backgroundColor = colors[i % colors.length];
                 s.style.transform = `rotate(${i * step}deg) skewY(${90 - step}deg)`;
                 wheel.appendChild(s);
 
-                // 畫文字
-                const l = document.createElement('div');
-                l.className = 'word-item';
-                l.innerText = word;
-                l.id = 'label-' + i;
-                container.appendChild(l);
-                
-                updateLabelPos(l, i, step, 0);
+                // 2. 畫文字
+                const w = document.createElement('div');
+                w.className = 'word-item';
+                w.innerText = word;
+                // 將文字分佈在圓周上
+                const angle = (i * step + step / 2);
+                const radius = 100;
+                // 使用 translate 代替複雜定位，rotate(-angle) 讓文字在初始位置就是正的
+                w.style.transform = `rotate(${angle}deg) translate(0, -${radius}px) rotate(-${angle}deg)`;
+                // 給文字一個屬性記錄它的初始角度
+                w.setAttribute('data-angle', angle);
+                textLayer.appendChild(w);
             });
-            currentRot = 0;
+            
+            curRot = 0;
             wheel.style.transform = `rotate(0deg)`;
-        }
-
-        function updateLabelPos(el, index, step, totalRot) {
-            const dist = 100; // 文字離圓心的距離
-            // 計算文字應該在的角度：初始偏移 + 轉盤旋轉角度
-            const angle = (index * step + step/2 + totalRot) * Math.PI / 180;
-            const x = Math.sin(angle) * dist;
-            const y = -Math.cos(angle) * dist;
-            // 這裡關鍵：translate 移動位置，但 rotate 永遠是 0，保證字是正的
-            el.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(0deg)`;
+            textLayer.style.transform = `rotate(0deg)`;
         }
 
         function spin() {
-            const words = document.getElementById('wordInput').value.split(/[\s,，]+/).filter(w => w.trim() !== "");
-            const step = 360 / words.length;
-            const extra = Math.floor(Math.random() * 360) + 1440;
-            currentRot += extra;
+            const spinAdd = Math.floor(Math.random() * 360) + 1800; // 轉5圈以上
+            curRot += spinAdd;
 
-            document.getElementById('wheel').style.transform = `rotate(${currentRot}deg)`;
+            const wheel = document.getElementById('wheel');
+            const textLayer = document.getElementById('textLayer');
+            const items = document.querySelectorAll('.word-item');
 
-            const labels = document.querySelectorAll('.word-item');
-            labels.forEach((l, i) => {
-                updateLabelPos(l, i, step, currentRot);
+            // 輪盤和文字層一起轉
+            wheel.style.transform = `rotate(${curRot}deg)`;
+            textLayer.style.transform = `rotate(${curRot}deg)`;
+
+            // 關鍵：每個文字標籤要在旋轉時，反向自轉「總旋轉角度」
+            items.forEach(item => {
+                const angle = item.getAttribute('data-angle');
+                const radius = 100;
+                // 這裡的 rotate(-angle - curRot) 是不倒翁的核心，它抵消了大輪盤的轉動
+                item.style.transform = `rotate(${angle}deg) translate(0, -${radius}px) rotate(${-angle - curRot}deg)`;
             });
-
-            for(let i=0; i<25; i++) setTimeout(playTick, i * 150);
         }
 
         window.onload = init;
