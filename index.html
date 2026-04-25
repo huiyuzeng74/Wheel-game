@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kids' Word Spinner</title>
+    <style>
+        :root {
+            --primary-bg: #e0f2fe;
+            --accent-color: #3b82f6;
+            --btn-green: #22c55e;
+            --pointer-red: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #1e3a8a;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* 老师输入区域 */
+        .admin-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 90%;
+            max-width: 500px;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #64748b;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 16px;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus { border-color: var(--accent-color); }
+
+        .btn-update {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-update:hover { opacity: 0.9; }
+
+        /* 轮盘主体 */
+        .spinner-viewport {
+            position: relative;
+            width: 420px;
+            height: 420px;
+            margin: 20px 0;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #1e293b;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+            background: #fff;
+        }
+
+        .segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: 100% 100%;
+            left: 0;
+            top: 0;
+        }
+
+        /* 核心修正：文字容器 */
+        .word-box {
+            position: absolute;
+            width: 120px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e293b;
+            /* 调整文字在扇区内的位置 */
+            right: 25px;
+            bottom: 55px;
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+            pointer-events: none;
+        }
+
+        #pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 45px solid var(--pointer-red);
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+
+        .btn-spin {
+            background-color: var(--btn-green);
+            color: white;
+            border: none;
+            padding: 18px 80px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #15803d;
+            margin-top: 20px;
+            transition: all 0.1s;
+        }
+
+        .btn-spin:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #15803d;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Kids' Word Spinner</h1>
+
+    <div class="admin-panel">
+        <label for="wordInput">Enter Words (Separate by space or comma):</label>
+        <textarea id="wordInput" placeholder="e.g. 苹果, 香蕉, 橘子">苹果 香蕉 西瓜 葡萄 草莓 芒果</textarea>
+        <button class="btn-update" onclick="initWheel()">Update Wheel Contents</button>
+    </div>
+
+    <div class="spinner-viewport">
+        <div id="pointer"></div>
+        <div id="wheel"></div>
+    </div>
+
+    <button class="btn-spin" onclick="spinWheel()">SPIN!</button>
+
+    <script>
+        let rotation = 0;
+        const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF'];
+
+        function initWheel() {
+            const wheel = document.getElementById('wheel');
+            const input = document.getElementById('wordInput').value;
+            const words = input.split(/[\s,，]+/).filter(w => w.trim() !== "");
+            
+            if (words.length < 2) {
+                alert("Please enter at least 2 words!");
+                return;
+            }
+
+            wheel.innerHTML = '';
+            const step = 360 / words.length;
+
+            words.forEach((word, i) => {
+                const seg = document.createElement('div');
+                seg.className = 'segment';
+                seg.style.backgroundColor = colors[i % colors.length];
+                seg.style.transform = `rotate(${i * step}deg) skewY(${90 - step}deg)`;
+
+                const box = document.createElement('div');
+                box.className = 'word-box';
+                box.innerText = word;
+
+                // 初始位置修正：让文字水平
+                const skewFix = -(90 - step);
+                const rotateFix = -(step / 2);
+                box.style.transform = `skewY(${skewFix}deg) rotate(${rotateFix}deg)`;
+                
+                seg.appendChild(box);
+                wheel.appendChild(seg);
+            });
+            
+            rotation = 0;
+            wheel.style.transform = `rotate(0deg)`;
+        }
+
+        function spinWheel() {
+            const wheel = document.getElementById('wheel');
+            const words = document.querySelectorAll('.word-box');
+            const step = 360 / words.length;
+            
+            const extraSpin = Math.floor(Math.random() * 360) + 1440; // 4 full spins min
+            rotation += extraSpin;
+
+            // 旋转大轮盘
+            wheel.style.transform = `rotate(${rotation}deg)`;
+
+            // 关键：反向旋转所有文字容器，保持它们水平
+            words.forEach((box, i) => {
+                const skewFix = -(90 - step);
+                const rotateFix = -(step / 2);
+                // 最终文字旋转角度 = 初始修正 - 轮盘总旋转量
+                box.style.transform = `skewY(${skewFix}deg) rotate(${rotateFix - rotation}deg)`;
+            });
+        }
+
+        // 页面加载时自动生成
+        window.onload = initWheel;
+    </script>
+</body>
+</html>
