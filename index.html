@@ -3,93 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kids' Word Spinner</title>
+    <title>Kids' Ferris Spinner</title>
     <style>
-        body { font-family: sans-serif; background: #e0f2fe; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .admin { background: white; padding: 15px; border-radius: 12px; width: 90%; max-width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px; text-align: center; }
-        textarea { width: 100%; height: 50px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; padding: 8px; margin-bottom: 10px; }
-        .btn-blue { background: #3b82f6; color: white; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #fdf2f8; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; overflow: hidden; }
+        h1 { color: #be185d; font-size: 24px; margin: 10px 0; }
+        .admin { background: white; padding: 10px; border-radius: 12px; width: 90%; max-width: 380px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; text-align: center; z-index: 10; }
+        textarea { width: 100%; height: 50px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; padding: 5px; }
+        .btn-update { background: #ec4899; color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; margin-top: 5px; font-weight: bold; cursor: pointer; }
         
-        .stage { position: relative; width: 320px; height: 320px; margin: 20px 0; }
-        /* 輪盤主體 */
-        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #333; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; z-index: 1; }
-        .seg { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; }
+        /* 摩天輪舞台 */
+        .ferris-stage { position: relative; width: 320px; height: 320px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
         
-        /* 文字層：這層跟著輪盤一起轉 */
-        #textLayer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); z-index: 2; pointer-events: none; }
+        /* 中間的大輪子（裝飾用扇形） */
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #c2410c; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; z-index: 1; }
+        .seg { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; opacity: 0.8; }
         
-        /* 每個文字：在旋轉的層裡反向自轉，保持垂直 */
-        .word-item {
-            position: absolute; width: 100px; height: 40px;
-            left: 50%; top: 50%; margin-left: -50px; margin-top: -20px;
+        /* 核心：文字標籤層（跟著轉盤轉） */
+        #labelsLayer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); z-index: 5; pointer-events: none; }
+        
+        /* 每個「吊著」的文字標籤（車廂） */
+        .word-cabin {
+            position: absolute; 
+            width: 80px; height: 36px;
+            /* 讓文字背景看起來像吊著的車廂 */
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #be185d; border-radius: 18px;
+            color: #be185d; font-size: 18px; font-weight: bold;
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; font-weight: bold; color: #1e293b;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            
+            /* 居中定位 */
+            left: 50%; top: 50%;
+            margin-left: -40px; margin-top: -18px;
+            
+            /* 設置吊點：在車廂頂部正中間 */
+            transform-origin: 50% 0%; 
+            
             transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1);
         }
 
+        /* 頂部的指針 */
         #pointer { 
-            position: absolute; top: -20px; left: 50%; transform: translateX(-50%); z-index: 100;
-            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #ef4444; 
+            position: absolute; top: -25px; left: 50%; transform: translateX(-50%); z-index: 100;
+            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 45px solid #be185d; 
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));
         }
-        .btn-spin { background: #22c55e; color: white; border: none; padding: 18px 80px; font-size: 26px; border-radius: 50px; box-shadow: 0 6px 0 #15803d; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        .btn-spin { background: #be185d; color: white; border: none; padding: 15px 70px; font-size: 24px; border-radius: 50px; box-shadow: 0 6px 0 #9d174d; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.1s; }
+        .btn-spin:active { transform: translateY(4px); box-shadow: 0 2px 0 #9d174d; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:#1e3a8a">🎡 Kids' Word Spinner</h2>
+    <h1>🎡 Kids' Ferris Spinner</h1>
 
     <div class="admin">
         <textarea id="wordInput">蘋果, 香蕉, 西瓜, 葡萄, 草莓, 芒果</textarea>
-        <button class="btn-blue" onclick="init()">Update (更新輪盤)</button>
+        <button class="btn-update" onclick="init()">Update (更新摩天輪)</button>
     </div>
 
-    <div class="stage">
+    <div class="ferris-stage">
         <div id="pointer"></div>
         <div id="wheel"></div>
-        <div id="textLayer"></div>
+        <div id="labelsLayer"></div>
     </div>
 
     <button class="btn-spin" onclick="spin()">SPIN!</button>
 
     <script>
         let curRot = 0;
-        const colors = ['#FFADAD', '#FFD6A5', '#FDFFB6', '#CAFFBF', '#9BF6FF', '#A0C4FF', '#BDB2FF', '#FFC6FF'];
+        // 柔和的摩天輪配色
+        const colors = ['#fbcfe8', '#fecdd3', '#fef3c7', '#d9f99d', '#bae6fd', '#ddd6fe', '#e9d5ff', '#fed7aa'];
 
         function init() {
             const wheel = document.getElementById('wheel');
-            const textLayer = document.getElementById('textLayer');
-            const input = document.getElementById('wordInput').value;
-            const words = input.split(/[\s,，]+/).filter(w => w.trim() !== "");
+            const layer = document.getElementById('labelsLayer');
+            const words = document.getElementById('wordInput').value.split(/[\s,，]+/).filter(w => w.trim() !== "");
             
             wheel.innerHTML = '';
-            textLayer.innerHTML = '';
+            layer.innerHTML = '';
             const step = 360 / words.length;
 
             words.forEach((word, i) => {
-                // 1. 畫背景扇區
+                // 1. 畫輪子內部的裝飾扇區
                 const s = document.createElement('div');
                 s.className = 'seg';
                 s.style.backgroundColor = colors[i % colors.length];
                 s.style.transform = `rotate(${i * step}deg) skewY(${90 - step}deg)`;
                 wheel.appendChild(s);
 
-                // 2. 畫文字
-                const w = document.createElement('div');
-                w.className = 'word-item';
-                w.innerText = word;
-                // 將文字分佈在圓周上
+                // 2. 畫「吊在圓周上」的文字車廂
+                const c = document.createElement('div');
+                c.className = 'word-cabin';
+                c.innerText = word;
+                
+                // 計算吊點在圓周上的角度
                 const angle = (i * step + step / 2);
-                const radius = 100;
-                // 使用 translate 代替複雜定位，rotate(-angle) 讓文字在初始位置就是正的
-                w.style.transform = `rotate(${angle}deg) translate(0, -${radius}px) rotate(-${angle}deg)`;
-                // 給文字一個屬性記錄它的初始角度
-                w.setAttribute('data-angle', angle);
-                textLayer.appendChild(w);
+                const radius = 125; // 讓車廂稍微超出輪子邊緣，看起來是「吊」在外面
+                
+                // 初始位置設置
+                placeCabin(c, angle, 0);
+                
+                c.setAttribute('data-angle', angle); // 記錄初始角度
+                layer.appendChild(c);
             });
             
             curRot = 0;
             wheel.style.transform = `rotate(0deg)`;
-            textLayer.style.transform = `rotate(0deg)`;
+            layer.style.transform = `rotate(0deg)`;
+        }
+
+        // 放置和旋轉車廂的核心算法
+        function placeCabin(el, baseAngle, totalRot) {
+            const radius = 125;
+            // 關鍵幾何變換：
+            // 1. rotate(${baseAngle}deg) -> 先把車廂旋轉到圓周對應位置
+            // 2. translate(0, -${radius}px) -> 延徑向向外移動，掛到圓周上
+            // 3. rotate(${-baseAngle - totalRot}deg) -> 
+            //    自轉：抵消初始旋轉，並抵消輪子的總旋轉，確保頭永遠朝上
+            el.style.transform = `rotate(${baseAngle}deg) translate(0, -${radius}px) rotate(${-baseAngle - totalRot}deg)`;
         }
 
         function spin() {
@@ -97,19 +129,18 @@
             curRot += spinAdd;
 
             const wheel = document.getElementById('wheel');
-            const textLayer = document.getElementById('textLayer');
-            const items = document.querySelectorAll('.word-item');
+            const layer = document.getElementById('labelsLayer');
+            const cabins = document.querySelectorAll('.word-cabin');
 
-            // 輪盤和文字層一起轉
+            // 輪子和文字層一起瘋狂旋轉
             wheel.style.transform = `rotate(${curRot}deg)`;
-            textLayer.style.transform = `rotate(${curRot}deg)`;
+            layer.style.transform = `rotate(${curRot}deg)`;
 
-            // 關鍵：每個文字標籤要在旋轉時，反向自轉「總旋轉角度」
-            items.forEach(item => {
-                const angle = item.getAttribute('data-angle');
-                const radius = 100;
-                // 這裡的 rotate(-angle - curRot) 是不倒翁的核心，它抵消了大輪盤的轉動
-                item.style.transform = `rotate(${angle}deg) translate(0, -${radius}px) rotate(${-angle - curRot}deg)`;
+            // 核心：「摩天輪」效果
+            // 每個文字車廂在轉動過程中，即時更新自己的自轉角度，保持垂直向下
+            cabins.forEach(cabin => {
+                const baseAngle = cabin.getAttribute('data-angle');
+                placeCabin(cabin, baseAngle, curRot);
             });
         }
 
