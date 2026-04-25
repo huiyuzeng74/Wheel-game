@@ -3,66 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kids' Ferris Spinner</title>
+    <title>Kids' Word Spinner - Pinyin Edition</title>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #fdf2f8; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; overflow: hidden; }
-        h1 { color: #be185d; font-size: 24px; margin: 10px 0; }
-        .admin { background: white; padding: 10px; border-radius: 12px; width: 90%; max-width: 380px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; text-align: center; z-index: 10; }
-        textarea { width: 100%; height: 50px; font-size: 16px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; padding: 5px; }
-        .btn-update { background: #ec4899; color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; margin-top: 5px; font-weight: bold; cursor: pointer; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f9ff; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
+        .admin { background: white; padding: 12px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 10px; }
+        textarea { width: 100%; height: 60px; font-size: 14px; border: 2px solid #bae6fd; border-radius: 10px; padding: 8px; box-sizing: border-box; }
+        .btn-update { background: #0ea5e9; color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; margin-top: 8px; font-weight: bold; cursor: pointer; }
         
-        /* 摩天輪舞台 */
-        .ferris-stage { position: relative; width: 320px; height: 320px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
+        /* 舞台與輪子 */
+        .stage { position: relative; width: 340px; height: 340px; margin: 25px 0; }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #0369a1; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; z-index: 1; }
+        .seg { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; opacity: 0.7; }
         
-        /* 中間的大輪子（裝飾用扇形） */
-        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #c2410c; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; z-index: 1; }
-        .seg { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; opacity: 0.8; }
-        
-        /* 核心：文字標籤層（跟著轉盤轉） */
         #labelsLayer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); z-index: 5; pointer-events: none; }
         
-        /* 每個「吊著」的文字標籤（車廂） */
-        .word-cabin {
-            position: absolute; 
-            width: 80px; height: 36px;
-            /* 讓文字背景看起來像吊著的車廂 */
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid #be185d; border-radius: 18px;
-            color: #be185d; font-size: 18px; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-            
-            /* 居中定位 */
-            left: 50%; top: 50%;
-            margin-left: -40px; margin-top: -18px;
-            
-            /* 設置吊點：在車廂頂部正中間 */
-            transform-origin: 50% 0%; 
-            
+        /* 摩天輪車廂：文字標籤 */
+        .cabin {
+            position: absolute; width: 90px; padding: 5px 2px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #0ea5e9; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            left: 50%; top: 50%; margin-left: -45px; margin-top: -30px;
+            transform-origin: 50% 50%;
             transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1);
         }
 
-        /* 頂部的指針 */
+        .pinyin { font-size: 12px; color: #ef4444; margin-bottom: 2px; font-weight: normal; }
+        .chinese { font-size: 20px; color: #1e3a8a; font-weight: bold; line-height: 1.2; }
+        .english { font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; }
+
         #pointer { 
-            position: absolute; top: -25px; left: 50%; transform: translateX(-50%); z-index: 100;
-            width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 45px solid #be185d; 
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%); z-index: 100;
+            width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-top: 40px solid #f43f5e; 
         }
-        
-        .btn-spin { background: #be185d; color: white; border: none; padding: 15px 70px; font-size: 24px; border-radius: 50px; box-shadow: 0 6px 0 #9d174d; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.1s; }
-        .btn-spin:active { transform: translateY(4px); box-shadow: 0 2px 0 #9d174d; }
+        .btn-spin { background: #f43f5e; color: white; border: none; padding: 15px 80px; font-size: 24px; border-radius: 50px; box-shadow: 0 6px 0 #be123c; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-spin:active { transform: translateY(4px); box-shadow: 0 2px 0 #be123c; }
     </style>
 </head>
 <body>
 
-    <h1>🎡 Kids' Ferris Spinner</h1>
+    <h2 style="color:#0369a1; margin:5px 0;">🎡 Kids' Word Spinner</h2>
 
     <div class="admin">
-        <textarea id="wordInput">蘋果, 香蕉, 西瓜, 葡萄, 草莓, 芒果</textarea>
-        <button class="btn-update" onclick="init()">Update (更新摩天輪)</button>
+        <div style="font-size:12px; color:#64748b; margin-bottom:4px;">格式：拼音|中文|英文（逗號隔開）</div>
+        <textarea id="wordInput">píng guǒ|蘋果|apple, xiāng jiāo|香蕉|banana, xī guā|西瓜|melon, pú táo|葡萄|grape, cǎo méi|草莓|berry, máng guǒ|芒果|mango</textarea>
+        <button class="btn-update" onclick="init()">Update Wheel (更新摩天輪)</button>
     </div>
 
-    <div class="ferris-stage">
+    <div class="stage">
         <div id="pointer"></div>
         <div id="wheel"></div>
         <div id="labelsLayer"></div>
@@ -72,76 +61,84 @@
 
     <script>
         let curRot = 0;
-        // 柔和的摩天輪配色
-        const colors = ['#fbcfe8', '#fecdd3', '#fef3c7', '#d9f99d', '#bae6fd', '#ddd6fe', '#e9d5ff', '#fed7aa'];
+        const colors = ['#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7'];
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(freq, type, gainVal, decay) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            g.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + decay);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + decay);
+        }
 
         function init() {
             const wheel = document.getElementById('wheel');
             const layer = document.getElementById('labelsLayer');
-            const words = document.getElementById('wordInput').value.split(/[\s,，]+/).filter(w => w.trim() !== "");
+            const input = document.getElementById('wordInput').value;
+            const items = input.split(/[,，\n]+/).filter(i => i.trim() !== "");
             
             wheel.innerHTML = '';
             layer.innerHTML = '';
-            const step = 360 / words.length;
+            const step = 360 / items.length;
 
-            words.forEach((word, i) => {
-                // 1. 畫輪子內部的裝飾扇區
+            items.forEach((item, i) => {
+                const parts = item.split('|');
+                const py = parts[0] || "";
+                const zh = parts[1] || "";
+                const en = parts[2] || "";
+
+                // 畫扇區
                 const s = document.createElement('div');
                 s.className = 'seg';
                 s.style.backgroundColor = colors[i % colors.length];
                 s.style.transform = `rotate(${i * step}deg) skewY(${90 - step}deg)`;
                 wheel.appendChild(s);
 
-                // 2. 畫「吊在圓周上」的文字車廂
+                // 畫車廂
                 const c = document.createElement('div');
-                c.className = 'word-cabin';
-                c.innerText = word;
+                c.className = 'cabin';
+                c.innerHTML = `<span class="pinyin">${py}</span><span class="chinese">${zh}</span><span class="english">${en}</span>`;
                 
-                // 計算吊點在圓周上的角度
                 const angle = (i * step + step / 2);
-                const radius = 125; // 讓車廂稍微超出輪子邊緣，看起來是「吊」在外面
-                
-                // 初始位置設置
-                placeCabin(c, angle, 0);
-                
-                c.setAttribute('data-angle', angle); // 記錄初始角度
+                c.setAttribute('data-angle', angle);
                 layer.appendChild(c);
+                placeCabin(c, angle, 0);
             });
-            
             curRot = 0;
             wheel.style.transform = `rotate(0deg)`;
             layer.style.transform = `rotate(0deg)`;
         }
 
-        // 放置和旋轉車廂的核心算法
         function placeCabin(el, baseAngle, totalRot) {
-            const radius = 125;
-            // 關鍵幾何變換：
-            // 1. rotate(${baseAngle}deg) -> 先把車廂旋轉到圓周對應位置
-            // 2. translate(0, -${radius}px) -> 延徑向向外移動，掛到圓周上
-            // 3. rotate(${-baseAngle - totalRot}deg) -> 
-            //    自轉：抵消初始旋轉，並抵消輪子的總旋轉，確保頭永遠朝上
+            const radius = 130;
             el.style.transform = `rotate(${baseAngle}deg) translate(0, -${radius}px) rotate(${-baseAngle - totalRot}deg)`;
         }
 
         function spin() {
-            const spinAdd = Math.floor(Math.random() * 360) + 1800; // 轉5圈以上
+            const spinAdd = Math.floor(Math.random() * 360) + 1800;
             curRot += spinAdd;
 
-            const wheel = document.getElementById('wheel');
+            document.getElementById('wheel').style.transform = `rotate(${curRot}deg)`;
             const layer = document.getElementById('labelsLayer');
-            const cabins = document.querySelectorAll('.word-cabin');
-
-            // 輪子和文字層一起瘋狂旋轉
-            wheel.style.transform = `rotate(${curRot}deg)`;
             layer.style.transform = `rotate(${curRot}deg)`;
 
-            // 核心：「摩天輪」效果
-            // 每個文字車廂在轉動過程中，即時更新自己的自轉角度，保持垂直向下
-            cabins.forEach(cabin => {
-                const baseAngle = cabin.getAttribute('data-angle');
-                placeCabin(cabin, baseAngle, curRot);
+            const cabins = document.querySelectorAll('.cabin');
+            cabins.forEach(c => {
+                const baseAngle = c.getAttribute('data-angle');
+                placeCabin(c, baseAngle, curRot);
             });
+
+            // 滴答音效
+            for(let i=0; i<25; i++) {
+                setTimeout(() => playSound(600, 'sine', 0.05, 0.1), i * 140);
+            }
+            // 結束叮聲
+            setTimeout(() => playSound(880, 'triangle', 0.1, 0.5), 4000);
         }
 
         window.onload = init;
