@@ -3,52 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kids' Word Spinner - Pinyin Edition</title>
+    <title>Kids' Pinyin Ferris Spinner</title>
     <style>
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f9ff; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
-        .admin { background: white; padding: 12px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 10px; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f9ff; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; touch-action: manipulation; }
+        .admin { background: white; padding: 12px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 10; margin-bottom: 5px; }
         textarea { width: 100%; height: 60px; font-size: 14px; border: 2px solid #bae6fd; border-radius: 10px; padding: 8px; box-sizing: border-box; }
         .btn-update { background: #0ea5e9; color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; margin-top: 8px; font-weight: bold; cursor: pointer; }
         
-        /* 舞台與輪子 */
-        .stage { position: relative; width: 340px; height: 340px; margin: 25px 0; }
-        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #0369a1; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; z-index: 1; }
-        .seg { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; opacity: 0.7; }
-        
+        .stage { position: relative; width: 340px; height: 340px; margin: 20px 0; }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; border: 6px solid #0369a1; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); background: white; }
+        .seg { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; left: 0; top: 0; opacity: 0.6; }
         #labelsLayer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1); z-index: 5; pointer-events: none; }
         
-        /* 摩天輪車廂：文字標籤 */
         .cabin {
-            position: absolute; width: 90px; padding: 5px 2px;
-            background: rgba(255, 255, 255, 0.95);
-            border: 2px solid #0ea5e9; border-radius: 12px;
+            position: absolute; width: 90px; padding: 4px 2px;
+            background: white; border: 2px solid #0ea5e9; border-radius: 12px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            left: 50%; top: 50%; margin-left: -45px; margin-top: -30px;
-            transform-origin: 50% 50%;
+            left: 50%; top: 50%; margin-left: -45px; margin-top: -25px;
             transition: transform 4s cubic-bezier(0.1, 0, 0.2, 1);
         }
-
-        .pinyin { font-size: 12px; color: #ef4444; margin-bottom: 2px; font-weight: normal; }
-        .chinese { font-size: 20px; color: #1e3a8a; font-weight: bold; line-height: 1.2; }
-        .english { font-size: 11px; color: #64748b; margin-top: 2px; font-weight: normal; }
+        .pinyin { font-size: 11px; color: #ef4444; }
+        .chinese { font-size: 20px; color: #1e3a8a; font-weight: bold; line-height: 1.1; }
+        .english { font-size: 10px; color: #64748b; }
 
         #pointer { 
-            position: absolute; top: -30px; left: 50%; transform: translateX(-50%); z-index: 100;
-            width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-top: 40px solid #f43f5e; 
+            position: absolute; top: -25px; left: 50%; transform: translateX(-50%); z-index: 100;
+            width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #f43f5e; 
         }
         .btn-spin { background: #f43f5e; color: white; border: none; padding: 15px 80px; font-size: 24px; border-radius: 50px; box-shadow: 0 6px 0 #be123c; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-spin:active { transform: translateY(4px); box-shadow: 0 2px 0 #be123c; }
     </style>
 </head>
 <body>
 
-    <h2 style="color:#0369a1; margin:5px 0;">🎡 Kids' Word Spinner</h2>
+    <h2 style="color:#0369a1; margin:5px 0;">🎡 Kids' Ferris Spinner</h2>
 
     <div class="admin">
-        <div style="font-size:12px; color:#64748b; margin-bottom:4px;">格式：拼音|中文|英文（逗號隔開）</div>
-        <textarea id="wordInput">píng guǒ|蘋果|apple, xiāng jiāo|香蕉|banana, xī guā|西瓜|melon, pú táo|葡萄|grape, cǎo méi|草莓|berry, máng guǒ|芒果|mango</textarea>
-        <button class="btn-update" onclick="init()">Update Wheel (更新摩天輪)</button>
+        <textarea id="wordInput">píng guǒ|蘋果|apple, xiāng jiāo|香蕉|banana, xī guā|西瓜|melon, pú táo|葡萄|grape, cǎo méi|草莓|berry</textarea>
+        <button class="btn-update" onclick="init()">Update (更新)</button>
     </div>
 
     <div class="stage">
@@ -61,57 +53,66 @@
 
     <script>
         let curRot = 0;
-        const colors = ['#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7'];
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const colors = ['#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9'];
+        let audioCtx = null;
 
-        function playSound(freq, type, gainVal, decay) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        // 初始化音頻上下文
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // 播放滴答聲
+        function playTick() {
+            if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            g.gain.setValueAtTime(gainVal, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + decay);
             osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + decay);
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        // 播放叮聲
+        function playDing() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
         }
 
         function init() {
             const wheel = document.getElementById('wheel');
             const layer = document.getElementById('labelsLayer');
-            const input = document.getElementById('wordInput').value;
-            const items = input.split(/[,，\n]+/).filter(i => i.trim() !== "");
-            
-            wheel.innerHTML = '';
-            layer.innerHTML = '';
+            const items = document.getElementById('wordInput').value.split(/[,，\n]+/).filter(i => i.trim() !== "");
+            wheel.innerHTML = ''; layer.innerHTML = '';
             const step = 360 / items.length;
-
             items.forEach((item, i) => {
                 const parts = item.split('|');
-                const py = parts[0] || "";
-                const zh = parts[1] || "";
-                const en = parts[2] || "";
-
-                // 畫扇區
                 const s = document.createElement('div');
                 s.className = 'seg';
                 s.style.backgroundColor = colors[i % colors.length];
                 s.style.transform = `rotate(${i * step}deg) skewY(${90 - step}deg)`;
                 wheel.appendChild(s);
-
-                // 畫車廂
                 const c = document.createElement('div');
                 c.className = 'cabin';
-                c.innerHTML = `<span class="pinyin">${py}</span><span class="chinese">${zh}</span><span class="english">${en}</span>`;
-                
+                c.innerHTML = `<span class="pinyin">${parts[0]||""}</span><span class="chinese">${parts[1]||""}</span><span class="english">${parts[2]||""}</span>`;
                 const angle = (i * step + step / 2);
                 c.setAttribute('data-angle', angle);
                 layer.appendChild(c);
                 placeCabin(c, angle, 0);
             });
-            curRot = 0;
-            wheel.style.transform = `rotate(0deg)`;
-            layer.style.transform = `rotate(0deg)`;
+            curRot = 0; wheel.style.transform = `rotate(0deg)`; layer.style.transform = `rotate(0deg)`;
         }
 
         function placeCabin(el, baseAngle, totalRot) {
@@ -120,27 +121,21 @@
         }
 
         function spin() {
+            initAudio(); // 點擊瞬間啟用音頻
             const spinAdd = Math.floor(Math.random() * 360) + 1800;
             curRot += spinAdd;
-
             document.getElementById('wheel').style.transform = `rotate(${curRot}deg)`;
-            const layer = document.getElementById('labelsLayer');
-            layer.style.transform = `rotate(${curRot}deg)`;
-
-            const cabins = document.querySelectorAll('.cabin');
-            cabins.forEach(c => {
-                const baseAngle = c.getAttribute('data-angle');
-                placeCabin(c, baseAngle, curRot);
+            document.getElementById('labelsLayer').style.transform = `rotate(${curRot}deg)`;
+            document.querySelectorAll('.cabin').forEach(c => {
+                placeCabin(c, c.getAttribute('data-angle'), curRot);
             });
-
-            // 滴答音效
-            for(let i=0; i<25; i++) {
-                setTimeout(() => playSound(600, 'sine', 0.05, 0.1), i * 140);
+            // 轉動過程中的音效
+            for(let i=0; i<20; i++) {
+                setTimeout(() => playTick(), i * 150);
             }
-            // 結束叮聲
-            setTimeout(() => playSound(880, 'triangle', 0.1, 0.5), 4000);
+            // 停止時的音效
+            setTimeout(() => playDing(), 4000);
         }
-
         window.onload = init;
     </script>
 </body>
